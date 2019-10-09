@@ -1,10 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 def Gaussian(mu,sigma):
     return np.random.normal(mu,sigma,1)
 
-def simpleBandit(R,steps,eps):
+def simpleBandit(R,steps,eps,alpha=0,randomWalkSigma = 0):
     k = len(R)
     Q = []
     N = []
@@ -23,43 +22,27 @@ def simpleBandit(R,steps,eps):
             a = int(np.random.uniform(0,k,1)[0])
         Ri = Gaussian(R[a],1.0)[0]
         reward += [Ri]
-        Q[a] = (Q[a]*N[a] + Ri)/(N[a]+1)
         N[a] += 1
+        if alpha == 0:
+            Q[a] += (Ri - Q[a])/N[a]
+        else:
+            Q[a] += alpha*(Ri - Q[a])
+        if randomWalkSigma != 0:
+            Q = [Q[s] + Gaussian(0,randomWalkSigma)[0] for s in range(k)]
         optimalActions += [int(a in idx_R_max)]
 
     return reward, optimalActions
 
-def runSimpleBandit(k,steps,runs,eps):
-    R = []
-    for i in range(k):
-        R += [Gaussian(0,1)[0]]
-    print("R = ", R)
-    data = [np.random.normal(R[i],1,steps) for i in range(k)]
-    reward = []
+def runSimpleBandit(R,steps,runs,eps,alpha=0,randomWalkSigma = 0):
+    rewards = []
     optAct = []
-    ax1 = plt.subplot(1,2,1)
-    ax1.violinplot(data,range(1,k+1),points=20,widths=0.8,showmeans=True,showextrema=False,showmedians=False)
-    ax1.grid(axis='x')
-    ax1.set_xticks(range(k+1))
     for e in range(len(eps)):
         avg_reward = [0 for i in range(steps)]
         percOptAct = [0 for i in range(steps)]
         for i in range(runs):
-            # np.random.seed(i)
-            reward, optimalActions = simpleBandit(R,steps,eps[e])
-            avg_reward = [avg_reward[j] + reward[j]/runs for j in range(steps)]
-            percOptAct = [percOptAct[j] + optimalActions[j]/runs for j in range(steps)]
-        ax2 = plt.subplot(2,2,2)
-        ax2.plot(range(steps),avg_reward)
-        ax2.grid(True)
-        ax3 = plt.subplot(2,2,4)
-        ax3.plot(range(steps),percOptAct)
-        ax3.grid(True)
-    ax2.legend(eps)
-    plt.show()
-
-k = 10
-steps = 1000
-runs = 2000
-eps = [0,0.01,0.1]
-runSimpleBandit(k,steps,runs,eps)
+            reward, optimalActions = simpleBandit(R,steps,eps[e],alpha,randomWalkSigma)
+            avg_reward = [avg_reward[j] + reward[j]/float(runs) for j in range(steps)]
+            percOptAct = [percOptAct[j] + float(optimalActions[j])/float(runs) for j in range(steps)]
+        rewards += [avg_reward]
+        optAct += [percOptAct]
+    return rewards,optAct
