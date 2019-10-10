@@ -29,20 +29,21 @@ def simpleBandit(R,steps,eps,init = 0,alpha=0,randomWalkSigma = 0):
             Q[a] += alpha*(Ri - Q[a])
         if randomWalkSigma != 0:
             Q = [Q[s] + Gaussian(0,randomWalkSigma)[0] for s in range(k)]
-        optimalActions += [int(a in idx_R_max)]
-
+        optimalActions += [a]
     return reward, optimalActions
 
 def runSimpleBandit(R,steps,runs,eps,init=0,alpha=0,randomWalkSigma = 0):
     rewards = []
     optAct = []
+    idx_R_max = np.where(R == np.max(R))[0]
     for e in range(len(eps)):
         avg_reward = [0 for i in range(steps)]
         percOptAct = [0 for i in range(steps)]
         for i in range(runs):
             reward, optimalActions = simpleBandit(R,steps,eps[e],init,alpha,randomWalkSigma)
             avg_reward = [avg_reward[j] + reward[j]/float(runs) for j in range(steps)]
-            percOptAct = [percOptAct[j] + float(optimalActions[j])/float(runs) for j in range(steps)]
+            percOptAct = [percOptAct[j] + float(optimalActions[j] in idx_R_max)/float(runs) for j in range(steps)]
         rewards += [avg_reward]
         optAct += [percOptAct]
+
     return rewards,optAct
