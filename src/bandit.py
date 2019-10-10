@@ -3,12 +3,12 @@ import numpy as np
 def Gaussian(mu,sigma):
     return np.random.normal(mu,sigma,1)
 
-def simpleBandit(R,steps,eps,alpha=0,randomWalkSigma = 0):
+def simpleBandit(R,steps,eps,init = 0,alpha=0,randomWalkSigma = 0):
     k = len(R)
     Q = []
     N = []
     for i in range(k):
-        Q += [0]
+        Q += [init]
         N += [0]
     idx_R_max = np.where(R == np.max(R))[0]
     reward = []
@@ -33,14 +33,14 @@ def simpleBandit(R,steps,eps,alpha=0,randomWalkSigma = 0):
 
     return reward, optimalActions
 
-def runSimpleBandit(R,steps,runs,eps,alpha=0,randomWalkSigma = 0):
+def runSimpleBandit(R,steps,runs,eps,init=0,alpha=0,randomWalkSigma = 0):
     rewards = []
     optAct = []
     for e in range(len(eps)):
         avg_reward = [0 for i in range(steps)]
         percOptAct = [0 for i in range(steps)]
         for i in range(runs):
-            reward, optimalActions = simpleBandit(R,steps,eps[e],alpha,randomWalkSigma)
+            reward, optimalActions = simpleBandit(R,steps,eps[e],init,alpha,randomWalkSigma)
             avg_reward = [avg_reward[j] + reward[j]/float(runs) for j in range(steps)]
             percOptAct = [percOptAct[j] + float(optimalActions[j])/float(runs) for j in range(steps)]
         rewards += [avg_reward]
