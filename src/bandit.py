@@ -17,8 +17,10 @@ def simpleBandit(R,steps,eps,init = 0,alpha=0,randomWalkSigma = 0):
         prob = np.random.uniform(0,1,1)[0]
         if prob >= eps:
             idx_Q_max = np.where(Q == np.max(Q))[0]
-            a = int(np.random.uniform(idx_Q_max[0],idx_Q_max[-1]+1,1)[0])
+            # Randomly break ties
+            a = idx_Q_max[ int(np.random.uniform( 0, len(idx_Q_max) , 1 )[0]) ]
         else:
+            # If less then epsilon explore by selecting randomly
             a = int(np.random.uniform(0,k,1)[0])
         Ri = Gaussian(R[a],1.0)[0]
         reward += [Ri]
